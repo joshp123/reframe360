@@ -4,6 +4,30 @@ An MCP server and CLI for reframing raw Insta360 X6/X5/X4 360° footage (`.lrv` 
 
 Built so AI agents (or scripts) can inspect a 360° sphere visually, choose camera moves, render stabilized 16:9 or 9:16 shots, and hand keyframes to DaVinci Resolve without clicking through Insta360 Studio.
 
+## Demo
+
+[![reframe360 before and after demo](docs/demo-preview.gif)](https://github.com/joshp123/reframe360/releases/download/v0.2.0/reframe360-demo-before-after.mp4)
+
+*Click the preview for the full 1080p 25fps video with audio ([docs/demo-before-after.mp4](docs/demo-before-after.mp4) · [release download](https://github.com/joshp123/reframe360/releases/download/v0.2.0/reframe360-demo-before-after.mp4)).*
+
+**What you are seeing:** raw dual-fisheye `.lrv` clips straight off an Insta360 X6 swinging on a selfie stick (top left, flat I-Log, tilting sideways), converted in real time into a horizon-locked 360° sphere with an animated rectilinear viewport box gliding across the `±90°` dual-lens seam (bottom left), and raycast in one pass into a stabilized, LUT-graded 16:9 shot (right).
+
+### Before vs After (same raw frame)
+
+![Before vs After coastal waves](docs/before-after.jpg)
+
+Exact same frame from a raw Insta360 X6 `.lrv` file: an unstabilized stitch with a tilted horizon, hard seam, and flat I-Log on the left; `reframe360` with 1000 Hz IMU horizon lock, MEI dual-fisheye Laplacian blending, and Rec.709 LUT on the right.
+
+### 3-stage pipeline
+
+![reframe360 3-stage pipeline](docs/pipeline.jpg)
+
+### How an agent picks camera angles (`inspect_sphere`)
+
+![reframe360 inspect_sphere contact sheet](docs/inspect-sphere.jpg)
+
+Instead of guessing yaw and pitch numbers blind, an agent calls `inspect_sphere` over MCP. The tool returns this horizon-locked equirectangular contact sheet inline as a JPEG—with yaw/pitch lines, red `±90°` dual-lens seam markers, and the exact yellow rectilinear viewport crop box for proposed keyframes. Once the framing looks right, the agent renders the final clip with `reframe_clip` or exports Bezier keyframes to DaVinci Resolve with `export_resolve_fusion`.
+
 ## What it does
 
 - **Factory MEI dual-fisheye stitching (`insta360_meta.py`):** Reads the Insta360 v3 binary trailer (`offset_v3`), extracts both lenses' 56-token MEI calibration and extrinsics, and raycasts rectilinear frames straight from both fisheye sensors in one pass. Uses symmetric overlap gain matching and 3-level Laplacian pyramid blending to avoid hard stitch seams.
